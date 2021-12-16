@@ -1,0 +1,5 @@
+2021 12 16 
+
+considerations
+- cannot have too many plots because that would imply few observations per plot and our model would have a hard time estimating theta for each plot
+- if I have too few plots, then we might fail to capture the spatial pattern adequately

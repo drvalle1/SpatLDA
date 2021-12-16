@@ -1,12 +1,12 @@
 rm(list=ls(all=TRUE))
 library('gtools')
-library('Rcpp')
-set.seed(2)
+# library('Rcpp')
+set.seed(1)
 
 #get functions
 setwd('U:\\GIT_models\\SpatLDA')
 source('SpatLDA aux functions.R')
-sourceCpp('aux1.cpp')
+# sourceCpp('aux1.cpp')
 
 #get data
 setwd('U:\\GIT_models\\SpatLDA\\fake data')
@@ -15,10 +15,10 @@ dat0=dat=read.csv('fake data.csv',as.is=T)
 # ind=which(colnames(dat)=='psi'); colnames(dat)[ind]='clust.id'
 
 #potential documents
-# coord.doc=expand.grid(x=seq(from=0,to=1000,by=200),
-#                       y=seq(from=0,to=1000,by=200))
-coord.doc=data.frame(x=c(200,600,800),
-                     y=c(200,400,800))
+coord.doc=expand.grid(x=seq(from=0,to=1000,by=200),
+                      y=seq(from=0,to=1000,by=200))
+# coord.doc=data.frame(x=c(200,600,800),
+#                      y=c(200,400,800))
 ndoc=nrow(coord.doc)
 
 #useful stuff

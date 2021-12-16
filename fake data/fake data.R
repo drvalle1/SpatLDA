@@ -102,6 +102,6 @@ coord1=cbind(coord,res1)
 
 #plot results
 ggplot() +
-  geom_tile(data = coord1, alpha = 0.8,aes(x = x, y = y,fill = c1)) +
+  geom_tile(data = coord1, alpha = 0.8,aes(x = x, y = y,fill = c3)) +
   scale_fill_gradient2(low = "cyan", mid = "red",high='purple',limits=c(0,1),midpoint=0.5) 
   
