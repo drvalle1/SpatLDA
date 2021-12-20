@@ -1,18 +1,15 @@
 #get estimated values
 theta.estim=theta
 phi.estim=phi
+clust.id.estim=dat$clust.id
+plot.id.estim=dat$plot.id; table(plot.id.estim)
 delta.estim=delta
 sig2.estim=sig2
   
 #get ordem
-fim=matrix(NA,nclust,nclust)
-for (i in 1:nclust){
-  for (j in 1:nclust){
-    tmp=cbind(phi.true[i,],phi.estim[j,])
-    fim[i,j]=cor(tmp)[1,2]
-  }
-}
-ordem=c(3,1,2)
+fim=data.frame(true1=dat0$psi,estim1=clust.id.estim)
+k=table(fim)
+ordem=c(2,3,1)
 
 #look at theta
 theta.estim1=theta.estim[,ordem]
@@ -26,6 +23,21 @@ rango=range(c(phi.true,phi.estim1))
 plot(phi.true,phi.estim1,xlim=rango,ylim=rango)
 lines(rango,rango,col='red')
 
+#look at cluster id
+clust.id.estim1=clust.id.estim
+for (i in 1:length(ordem)){
+  cond=clust.id.estim==ordem[i]
+  clust.id.estim1[cond]=i
+}
+fim=data.frame(true1=dat0$psi,estim1=clust.id.estim1)
+k=table(fim)
+k/apply(k,2,sum)
+
+#look at plot id
+fim=data.frame(true1=dat0$omega,estim1=dat$plot.id)
+k=table(fim)
+k/apply(k,2,sum)
+
 #---------------------------------
 #look at the spatial distribution of each group
 #calculate probabilities
@@ -34,11 +46,11 @@ coord=expand.grid(x=seq(from=0,to=1000,by=10),
 ncoord=nrow(coord)
 
 #get distances
-nplot=nrow(coord.plot)
-dist1=matrix(NA,ncoord,nplot)
-for (i in 1:nplot){
-  x2=(coord$x-coord.plot$x[i])^2
-  y2=(coord$y-coord.plot$y[i])^2
+ndoc=nrow(coord.doc)
+dist1=matrix(NA,ncoord,ndoc)
+for (i in 1:ndoc){
+  x2=(coord$x-coord.doc$x[i])^2
+  y2=(coord$y-coord.doc$y[i])^2
   dist1[,i]=sqrt(x2+y2)
 }
 

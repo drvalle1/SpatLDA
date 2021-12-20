@@ -101,7 +101,15 @@ res1=as.data.frame(res)
 coord1=cbind(coord,res1)
 
 #plot results
-ggplot() +
+library(gridExtra)
+library(grid)
+p1=ggplot() +
+  geom_tile(data = coord1, alpha = 0.8,aes(x = x, y = y,fill = c1)) +
+  scale_fill_gradient2(low = "cyan", mid = "red",high='purple',limits=c(0,1),midpoint=0.5) 
+p2=ggplot() +
+  geom_tile(data = coord1, alpha = 0.8,aes(x = x, y = y,fill = c2)) +
+  scale_fill_gradient2(low = "cyan", mid = "red",high='purple',limits=c(0,1),midpoint=0.5) 
+p3=ggplot() +
   geom_tile(data = coord1, alpha = 0.8,aes(x = x, y = y,fill = c3)) +
   scale_fill_gradient2(low = "cyan", mid = "red",high='purple',limits=c(0,1),midpoint=0.5) 
-  
+grid.arrange(p1, p2, p3,nrow = 1)

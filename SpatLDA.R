@@ -1,29 +1,23 @@
 rm(list=ls(all=TRUE))
 library('gtools')
-# library('Rcpp')
 set.seed(1)
 
 #get functions
 setwd('U:\\GIT_models\\SpatLDA')
 source('SpatLDA aux functions.R')
-# sourceCpp('aux1.cpp')
 
 #get data
 setwd('U:\\GIT_models\\SpatLDA\\fake data')
-dat0=dat=read.csv('fake data.csv',as.is=T)
-# ind=which(colnames(dat)=='omega'); colnames(dat)[ind]='plot.id'
-# ind=which(colnames(dat)=='psi'); colnames(dat)[ind]='clust.id'
+dat0=dat=read.csv('fake data1.csv',as.is=T)
 
 #potential documents
-coord.doc=expand.grid(x=seq(from=0,to=1000,by=200),
-                      y=seq(from=0,to=1000,by=200))
-# coord.doc=data.frame(x=c(200,600,800),
-#                      y=c(200,400,800))
-ndoc=nrow(coord.doc)
+coord.plot=expand.grid(x=seq(from=0,to=1000,by=200),
+                       y=seq(from=0,to=1000,by=200))
+nplot=nrow(coord.plot)
 
 #useful stuff
 nclust=3
-ngibbs=1000
+ngibbs=10000
 nburn=ngibbs/2
 
 #priors
@@ -31,24 +25,40 @@ gamma.theta=0.1
 gamma.phi=0.1
 
 #useful stuff
-ntrees=nrow(dat)
-nspp=max(dat$spp)
+ngrid=nrow(dat)
+ind=grep('spp',colnames(dat))
+nomes.spp=colnames(dat)[ind]
+tmp1=as.numeric(gsub('spp','',nomes.spp))
+nspp=max(tmp1)
 
 #get distances
-dist1=matrix(NA,ntrees,ndoc)
-for (i in 1:ndoc){
-  x2=(dat$x-coord.doc$x[i])^2
-  y2=(dat$y-coord.doc$y[i])^2
+dist1=matrix(NA,ngrid,nplot)
+for (i in 1:nplot){
+  x2=(dat$xbin-coord.plot$x[i])^2
+  y2=(dat$ybin-coord.plot$y[i])^2
   dist1[,i]=sqrt(x2+y2)
 }
 
-#initial values
-theta=matrix(1/nclust,ndoc,nclust)
+#initial values for parameters
+theta=matrix(1/nclust,nplot,nclust)
 phi=matrix(1/nspp,nclust,nspp)
 sig2=100
 delta=get.delta(sig2=sig2,dist1=dist1)
-dat$clust.id=sample(1:nclust,size=ntrees,replace=T)
-dat$plot.id=sample(1:ndoc,size=ntrees,replace=T)
+
+#initial values for cluster and plot membership
+array.gskp=array(0,dim=c(ngrid,nspp,nclust,nplot))
+nbins=nclust*nplot
+for (i in 1:ngrid){
+  for (j in 1:nspp){
+    tmp=dat[i,paste0('spp',j)]
+    if (tmp>0){
+      tmp1=rmultinom(1,size=tmp,prob=rep(1/nbins,nbins))
+      array.gskp[i,j,,]=matrix(tmp1,nclust,nplot) 
+    }
+  }
+}
+# teste=apply(array.gskp,c(1,2),sum)
+# unique(teste-dat[,paste0('spp',1:nspp)])
 
 #MH stuff
 jump.sd=1 
@@ -56,7 +66,7 @@ accept1=0
 nchange.jump=50
 
 #to store outcomes from gibbs sampler
-theta.out=matrix(NA,ngibbs,nclust*ndoc)
+theta.out=matrix(NA,ngibbs,nclust*nplot)
 phi.out=matrix(NA,ngibbs,nclust*nspp)
 sig2.out=matrix(NA,ngibbs,1)
 llk=rep(NA,ngibbs)
@@ -67,21 +77,24 @@ for (i in 1:ngibbs){
   print(i)   
 
   #sample clust.id
-  dat=sample.clust.id(theta=theta,phi=phi,ntrees=ntrees,dat=dat)
+  array.gskp=sample.clust.id(theta=theta,phi=phi,nplot=nplot,nspp=nspp,
+                             array.gskp=array.gskp)
   
   #sample plot.id
-  dat=sample.plot.id(theta=theta,delta=delta,dat=dat,ntrees=ntrees)
+  array.gskp=sample.plot.id(theta=theta,delta=delta,array.gskp=array.gskp,
+                            ngrid=ngrid,nspp=nspp,nclust=nclust)
   
   #sample theta
-  theta=sample.theta(dat=dat,ndoc=ndoc,nclust=nclust,gamma1.theta=gamma.theta)
+  theta=sample.theta(array.gskp=array.gskp,nplot=nplot,nclust=nclust,gamma1.theta=gamma.theta)
   # theta=theta.true
   
   #sample phi
-  phi=sample.phi(dat=dat,gamma1.phi=gamma.phi,nclust=nclust,nspp=nspp)
+  phi=sample.phi(array.gskp=array.gskp,gamma1.phi=gamma.phi,nclust=nclust,nspp=nspp)
   # phi=phi.true
   
   #sample sig2
-  tmp=sample.sig2(dist1=dist1,sig2=sig2,theta=theta,jump.sd=jump.sd)
+  tmp=sample.sig2(dist1=dist1,sig2=sig2,theta=theta,jump.sd=jump.sd,
+                  ngrid=ngrid,nclust=nclust,array.gskp=array.gskp)
   accept1=accept1+tmp$accept1
   sig2=tmp$sig2
   # sig2=sig2.true
@@ -94,8 +107,9 @@ for (i in 1:ngibbs){
     accept1=0
   } 
   
-  #llk
-  llk[i]=get.llk(dat=dat,delta=delta,theta=theta,phi=phi,ntrees=ntrees)
+  #llk 
+  llk[i]=get.llk(dat=dat,delta=delta,theta=theta,phi=phi,
+                 ngrid=ngrid,nspp=nspp,nomes.spp=nomes.spp)
   
   #store results  
   theta.out[i,]=theta
