@@ -77,12 +77,18 @@ for (i in 1:ngibbs){
   print(i)   
 
   #sample clust.id
-  array.gskp=sample.clust.id(theta=theta,phi=phi,nplot=nplot,nspp=nspp,
-                             array.gskp=array.gskp)
+  for (s in 1:nspp){
+    array.gkp=array.gskp[,s,,]
+    array.gskp[,s,,]=sample.clust.id(theta=theta,phi=phi[,s],nplot=nplot,
+                                     array.gkp=array.gkp)
+  }
   
   #sample plot.id
-  array.gskp=sample.plot.id(theta=theta,delta=delta,array.gskp=array.gskp,
-                            ngrid=ngrid,nspp=nspp,nclust=nclust)
+  for (s in 1:nspp){
+    array.gkp=array.gskp[,s,,]
+    array.gskp[,s,,]=sample.plot.id(theta=theta,delta=delta,array.gkp=array.gkp,
+                                    ngrid=ngrid,nclust=nclust)
+  }
   
   #sample theta
   theta=sample.theta(array.gskp=array.gskp,nplot=nplot,nclust=nclust,gamma1.theta=gamma.theta)

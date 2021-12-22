@@ -1,41 +1,37 @@
-sample.clust.id=function(theta,phi,nplot,nspp,array.gskp){
-  array.soma=apply(array.gskp,c(1,2,4),sum)
-  array.teste=apply(array.soma,c(2,3),sum)
+sample.clust.id=function(theta,phi,nplot,array.gkp){
+  soma.gp=apply(array.gkp,c(1,3),sum)
+  soma.p=apply(soma.gp,1,sum)
   for (i in 1:nplot){
-    for (j in 1:nspp){
-      n=array.teste[j,i]
-      if (n>0){
-        tmp=phi[,j]*theta[i,]  
-        prob=tmp/sum(tmp)
-        for (g in 1:ngrid){
-          n=array.soma[g,j,i]
-          if (n>0) array.gskp[g,j,,i]=rmultinom(1,size=n,prob=prob)  
-        }
+    n=soma.p[i]
+    if (n>0){
+      tmp=phi*theta[i,]  
+      prob=tmp/sum(tmp)
+      for (g in 1:ngrid){
+        n=soma.gp[g,i]
+        if (n>0) array.gkp[g,,i]=rmultinom(1,size=n,prob=prob)  
       }
     }
-  }      
-  array.gskp
+  }
+  array.gkp
 }
 
-sample.plot.id=function(theta,delta,array.gskp,ngrid,nspp,nclust){
-  array.soma=apply(array.gskp,c(1,2,3),sum)
-  array.test=apply(array.soma,c(2,3),sum)
-  for (i in 1:nspp){
-    for (j in 1:nclust){
-      n=array.test[i,j]
-      if (n>0){
-        for (g in 1:ngrid){
-          n=array.soma[g,i,j]
-          if (n>0){
-            tmp=theta[,j]*delta[g,]  
-            prob=tmp/sum(tmp)
-            array.gskp[g,i,j,]=rmultinom(1,size=n,prob=prob)
-          }
+sample.plot.id=function(theta,delta,array.gkp,ngrid,nclust){
+  soma.gk=apply(array.gkp,c(1,2),sum)
+  soma.k=apply(soma.gk,2,sum)
+  for (k in 1:nclust){
+    n=soma.k[k]
+    if (n>0){
+      for (g in 1:ngrid){
+        n=soma.gk[g,k]
+        if (n>0){
+          tmp=theta[,k]*delta[g,]  
+          prob=tmp/sum(tmp)
+          array.gkp[g,k,]=rmultinom(1,size=n,prob=prob)
         }
       }
     }
   }
-  array.gskp
+  array.gkp
 }
 
 get.delta=function(sig2,dist1){
@@ -46,7 +42,7 @@ get.delta=function(sig2,dist1){
 
 sample.sig2=function(dist1,sig2,theta,jump.sd,ngrid,nclust,array.gskp){
   #summarize array
-  array.soma=apply(array.gskp,c(1,3),sum)
+  soma.gk=apply(array.gskp,c(1,3),sum)
   
   #propose new values
   sd1.old=sqrt(sig2)
@@ -59,11 +55,11 @@ sample.sig2=function(dist1,sig2,theta,jump.sd,ngrid,nclust,array.gskp){
   ldelta.old.theta=log(delta.old%*%theta)
   ldelta.new.theta=log(delta.new%*%theta)
   p.old=p.new=0
-  for (i in 1:ngrid){
-    for (j in 1:nclust){
-      if (array.soma[i,j]>0){
-        p.old=p.old+array.soma[i,j]*ldelta.old.theta[i,j]
-        p.new=p.new+array.soma[i,j]*ldelta.new.theta[i,j]
+  for (g in 1:ngrid){
+    for (k in 1:nclust){
+      if (soma.gk[g,k]>0){
+        p.old=p.old+soma.gk[g,k]*ldelta.old.theta[g,k]
+        p.new=p.new+soma.gk[g,k]*ldelta.new.theta[g,k]
       }
     }
   }
@@ -80,14 +76,16 @@ sample.sig2=function(dist1,sig2,theta,jump.sd,ngrid,nclust,array.gskp){
 
 sample.theta=function(array.gskp,nplot,nclust,gamma1.theta){
   theta=matrix(0,nplot,nclust)
-  soma=t(apply(array.gskp,c(3,4),sum))+gamma1.theta
+  soma.pk=t(apply(array.gskp,c(3,4),sum))
+  soma=soma.pk+gamma1.theta
   for (i in 1:nplot) theta[i,]=rdirichlet(1,soma[i,])
   theta
 }
 
 sample.phi=function(array.gskp,gamma1.phi,nclust,nspp){
   phi=matrix(0,nclust,nspp)
-  soma=t(apply(array.gskp,c(2,3),sum))+gamma1.phi
+  soma.ks=t(apply(array.gskp,c(2,3),sum))
+  soma=soma.ks+gamma1.phi
   for (i in 1:nclust) phi[i,]=rdirichlet(1,soma[i,])
   phi
 }

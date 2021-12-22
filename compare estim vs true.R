@@ -12,13 +12,13 @@ for (i in 1:nclust){
     fim[i,j]=cor(tmp)[1,2]
   }
 }
-ordem=c(3,1,2)
+ordem=c(3,2,1)
 
 #look at theta
-theta.estim1=theta.estim[,ordem]
-rango=range(c(theta.true,theta.estim1))
-plot(theta.true,theta.estim1,xlim=rango,ylim=rango)
-lines(rango,rango,col='red')
+# theta.estim1=theta.estim[,ordem]
+# rango=range(c(theta.true,theta.estim1))
+# plot(theta.true,theta.estim1,xlim=rango,ylim=rango)
+# lines(rango,rango,col='red')
 
 #look at phi
 phi.estim1=phi.estim[ordem,]
