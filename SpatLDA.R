@@ -1,9 +1,12 @@
 rm(list=ls(all=TRUE))
 library('gtools')
+library('Rcpp')
+library('RcppArmadillo')
 set.seed(1)
 
 #get functions
 setwd('U:\\GIT_models\\SpatLDA')
+sourceCpp('SpatLDA_aux.cpp')
 source('SpatLDA aux functions.R')
 
 #get data
@@ -77,30 +80,30 @@ for (i in 1:ngibbs){
   print(i)   
 
   #sample clust.id
-  for (s in 1:nspp){
-    array.gkp=array.gskp[,s,,]
-    array.gskp[,s,,]=sample.clust.id(theta=theta,phi=phi[,s],nplot=nplot,
-                                     array.gkp=array.gkp)
-  }
+  array.gskp=sample.clust.id(theta=theta,phi=phi,nplot=nplot,
+                             array.gskp=array.gskp,
+                             nspp=nspp,ngrid=ngrid,nclust=nclust)
   
   #sample plot.id
-  for (s in 1:nspp){
-    array.gkp=array.gskp[,s,,]
-    array.gskp[,s,,]=sample.plot.id(theta=theta,delta=delta,array.gkp=array.gkp,
-                                    ngrid=ngrid,nclust=nclust)
-  }
-  
+  tmp=sample.plot.id(theta=theta,delta=delta,array.gskp=array.gskp,
+                     ngrid=ngrid,nclust=nclust,nplot=nplot,nspp=nspp)
+  array.gskp=tmp$array.gskp
+  soma.gk=tmp$SomaGK #useful to sample sig2
+
+  #get useful summary for sampling theta and phi
+  soma.skp=apply(array.gskp,c(2,3,4),sum)
+
   #sample theta
-  theta=sample.theta(array.gskp=array.gskp,nplot=nplot,nclust=nclust,gamma1.theta=gamma.theta)
+  theta=sample.theta(soma.skp=soma.skp,nplot=nplot,nclust=nclust,gamma1.theta=gamma.theta)
   # theta=theta.true
   
   #sample phi
-  phi=sample.phi(array.gskp=array.gskp,gamma1.phi=gamma.phi,nclust=nclust,nspp=nspp)
+  phi=sample.phi(soma.skp=soma.skp,gamma1.phi=gamma.phi,nclust=nclust,nspp=nspp)
   # phi=phi.true
   
   #sample sig2
   tmp=sample.sig2(dist1=dist1,sig2=sig2,theta=theta,jump.sd=jump.sd,
-                  ngrid=ngrid,nclust=nclust,array.gskp=array.gskp)
+                  ngrid=ngrid,nclust=nclust,soma.gk=soma.gk)
   accept1=accept1+tmp$accept1
   sig2=tmp$sig2
   # sig2=sig2.true
