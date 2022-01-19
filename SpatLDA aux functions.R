@@ -52,7 +52,7 @@ sample.sig2=function(dist1,sig2,theta,jump.sd,ngrid,nclust,soma.gk){
   list(sig2=sd1^2,accept1=accept1)
 }
 
-sample.theta=function(soma.skp,nplot,nclust,gamma1.theta){
+sample.theta=function(soma.skp,nplot,nclust,gamma1.theta,nspp){
   theta=matrix(0,nplot,nclust)
   soma.pk=GetSumPK(nplot=nplot, nclust=nclust, nspp=nspp,
            SomaSKP=soma.skp)
@@ -61,7 +61,7 @@ sample.theta=function(soma.skp,nplot,nclust,gamma1.theta){
   theta
 }
 
-sample.phi=function(soma.skp,gamma1.phi,nclust,nspp){
+sample.phi=function(soma.skp,gamma1.phi,nclust,nspp,nplot){
   phi=matrix(0,nclust,nspp)
   soma.ks=GetSumKS(nplot=nplot,nclust=nclust,nspp=nspp,
                    SomaSKP=soma.skp)

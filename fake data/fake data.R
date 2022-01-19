@@ -99,6 +99,8 @@ for (i in 1:ncoord){
 colnames(res)=paste0('c',1:nclust)
 res1=as.data.frame(res)
 coord1=cbind(coord,res1)
+setwd('U:\\GIT_models\\SpatLDA\\fake data')
+write.csv(coord1,'fake data proportions.csv',row.names=F)
 
 #plot results
 library(gridExtra)
