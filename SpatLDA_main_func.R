@@ -70,7 +70,7 @@ SpatLDA=function(nclust,ngibbs,nburn,coord.plot,dat,
     soma.gk=tmp$SomaGK #useful to sample sig2
     
     #get useful summary for sampling theta and phi
-    soma.skp=apply(array.gskp,c(2,3,4),sum)
+    soma.skp=colSums(array.gskp,dims=1)
     
     #sample theta
     theta=sample.theta(soma.skp=soma.skp,nplot=nplot,nclust=nclust,

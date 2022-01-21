@@ -1,4 +1,5 @@
 sample.clust.id=function(theta,phi,nplot,array.gskp,nspp,ngrid,nclust){
+  
   for (s in 1:nspp){
     array.gkp=array.gskp[,s,,]
     tmp=SampleClustID(theta=theta, phi=phi[,s],nplot=nplot, 
@@ -10,16 +11,20 @@ sample.clust.id=function(theta,phi,nplot,array.gskp,nspp,ngrid,nclust){
 }
 
 sample.plot.id=function(theta,delta,array.gskp,ngrid,nclust,nplot,nspp){
-  SomaGK=matrix(0,ngrid,nclust) #useful to sample sig2
+  SomaGK1=matrix(0,ngrid,nclust) #useful to sample sig2
   for (s in 1:nspp){
     array.gkp=array.gskp[,s,,]
+    SomaGK=rowSums(array.gkp,dims=2)
+    SomaK=colSums(SomaGK)
     tmp=SamplePlotID(theta=theta, delta=delta, 
                      ngrid=ngrid, nclust=nclust, nplot=nplot,
-                     ArrayGKP=array.gkp)
+                     ArrayGKP=array.gkp,
+                     SomaGK=SomaGK,
+                     SomaK=SomaK)
     array.gskp[,s,,]=tmp$ArrayGKP1
-    SomaGK=SomaGK+tmp$SomaGK #useful to sample sig2
+    SomaGK1=SomaGK1+SomaGK
   }
-  list(array.gskp=array.gskp,SomaGK=SomaGK)
+  list(array.gskp=array.gskp,SomaGK=SomaGK1)
 }
 
 get.delta=function(sig2,dist1){
@@ -53,21 +58,26 @@ sample.sig2=function(dist1,sig2,theta,jump.sd,ngrid,nclust,soma.gk){
 }
 
 sample.theta=function(soma.skp,nplot,nclust,gamma1.theta,nspp){
-  theta=matrix(0,nplot,nclust)
-  soma.pk=GetSumPK(nplot=nplot, nclust=nclust, nspp=nspp,
-           SomaSKP=soma.skp)
+  soma.pk=t(colSums(soma.skp,dims=1))
   soma=soma.pk+gamma1.theta
-  for (i in 1:nplot) theta[i,]=rdirichlet(1,soma[i,])
-  theta
+  
+  #sample dirichlet
+  tmp=matrix(rgamma(nplot*nclust,soma),nplot,nclust)
+  tmp/rowSums(tmp)
+  # for (i in 1:nplot) theta[i,]=rdirichlet(1,soma[i,])
+  # theta
 }
 
 sample.phi=function(soma.skp,gamma1.phi,nclust,nspp,nplot){
   phi=matrix(0,nclust,nspp)
-  soma.ks=GetSumKS(nplot=nplot,nclust=nclust,nspp=nspp,
-                   SomaSKP=soma.skp)
+  soma.ks=t(rowSums(soma.skp,dims=2))
   soma=soma.ks+gamma1.phi
-  for (i in 1:nclust) phi[i,]=rdirichlet(1,soma[i,])
-  phi
+  
+  #sample dirichlet
+  tmp=matrix(rgamma(nspp*nclust,soma),nclust,nspp)
+  tmp/rowSums(tmp)
+  # for (i in 1:nclust) phi[i,]=rdirichlet(1,soma[i,])
+  # phi
 }
 
 get.llk=function(dat,delta,theta,phi,ngrid,nspp,nomes.spp){

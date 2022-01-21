@@ -15,13 +15,12 @@ setwd('U:\\GIT_models\\SpatLDA\\fake data')
 dat=read.csv('fake data1.csv',as.is=T)
 
 #potential documents
-by.dist=100
-coord.plot=expand.grid(x=seq(from=0,to=1000,by=by.dist),
-                       y=seq(from=0,to=1000,by=by.dist))
+tmp=unique(dat[,c('xbin','ybin')])
+coord.plot=data.frame(x=tmp$xbin,y=tmp$ybin)
 
 #useful stuff
 nclust=3
-ngibbs=10000
+ngibbs=3000
 nburn=ngibbs/2
 
 #priors
@@ -42,8 +41,7 @@ plot(mod$sig2[seq1],type='l')
 
 #export results
 setwd('U:\\GIT_models\\SpatLDA\\results')
-nomes=paste0(c('theta','phi','sig2','llk'),' ',by.dist,
-             '.csv')
+nomes=paste0(c('theta','phi','sig2','llk'),'.csv')
 write.csv(mod$theta[seq1,],nomes[1],row.names=F)
 write.csv(mod$phi[seq1,],  nomes[2],row.names=F)
 write.csv(mod$sig2,        nomes[3],row.names=F)
